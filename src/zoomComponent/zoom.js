@@ -1,70 +1,112 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from "react-dom";
+
 import ZoomMtgEmbedded from "@zoom/meetingsdk/embedded";
+
+const Watermark = () => {
+  const [timestamp, setTimestamp] = useState(new Date().toLocaleString());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimestamp(new Date().toLocaleString());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div id="persistent-watermark" className="fixed inset-0 w-screen h-screen pointer-events-none z-[9999] flex flex-col justify-between p-5 font-sans bg-black/20">
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(5)].map((_, index) => (
+          <div
+            key={`diagonal-${index}`}
+            className={`absolute top-1/2 -translate-y-1/2 -rotate-45 text-white/30 text-4xl whitespace-nowrap select-none shadow-lg`}
+            style={{
+              left: `${index * 25}%`,
+              transform: 'translate(-50%, -50%) rotate(-45deg)',
+            }}
+          >
+            CONFIDENTIAL
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute top-5 right-5 text-white/70 text-sm text-right shadow-md bg-black/40 p-2 rounded select-none">
+        <div>{timestamp}</div>
+        <div>rreza.rezaeiann@gmail.com</div>
+      </div>
+    </div>
+  );
+};
 
 function Zoom() {
   const audioRef = useRef(null);
-  const watermarkInterval = useRef(null);
+  const speechSynthRef = useRef(null);
+  const zoomContainerRef = useRef(null);
+  const [showWatermark, setShowWatermark] = useState(true);
+
+  const setupTextToSpeech = () => {
+    if (!window.speechSynthesis) {
+      console.error('Speech synthesis not supported');
+      return null;
+    }
+
+    const speakWatermark = () => {
+      if (speechSynthRef.current) {
+        speechSynthesis.cancel();
+      }
+
+      const text = "This is a confidential meeting. Recording is prohibited.";
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.volume = 0.1;
+      utterance.rate = 0.9;
+      utterance.pitch = 0.8;
+
+      speechSynthRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+      console.log('paly audio');
+
+    };
+
+    return setInterval(speakWatermark, 1000);
+  };
+
+  // Setup mutation observer to ensure watermark persists
+  useEffect(() => {
+    const meetingSDKElement = document.getElementById("meetingSDKElement");
+
+    // Create a mutation observer to watch for DOM changes
+    const observer = new MutationObserver((mutations) => {
+      const watermark = document.getElementById("persistent-watermark");
+      if (!watermark && showWatermark) {
+        // If watermark is missing but should be shown, reinsert it
+        const zoomRoot = meetingSDKElement.querySelector('.zm-host');
+        if (zoomRoot) {
+          const watermarkContainer = document.createElement('div');
+          watermarkContainer.id = 'watermark-container';
+          zoomRoot.appendChild(watermarkContainer);
+
+          // Use ReactDOM to render the watermark
+          const root = ReactDOM.createRoot(watermarkContainer);
+          root.render(<Watermark />);
+        }
+      }
+    });
+
+    // Start observing the meeting SDK element
+    if (meetingSDKElement) {
+      observer.observe(meetingSDKElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    return () => observer.disconnect();
+  }, [showWatermark]);
 
   useEffect(() => {
     const client = ZoomMtgEmbedded.createClient();
-    let meetingSDKElement = document.getElementById("meetingSDKElement");
-
-    // Create watermark overlay
-    const createWatermark = () => {
-      const watermarkDiv = document.createElement('div');
-      watermarkDiv.style.position = 'fixed';
-      watermarkDiv.style.top = '0';
-      watermarkDiv.style.left = '0';
-      watermarkDiv.style.width = '100%';
-      watermarkDiv.style.height = '100%';
-      watermarkDiv.style.pointerEvents = 'none';
-      watermarkDiv.style.zIndex = '9999';
-
-      // Add timestamp and user info
-      const timestamp = new Date().toLocaleString();
-      const userEmail = "rreza.rezaeiann@gmail.com";
-      watermarkDiv.innerHTML = `
-        <div style="
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          color: rgba(255, 255, 255, 0.5);
-          font-size: 14px;
-          text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-        ">
-          ${timestamp}<br>${userEmail}
-        </div>
-        <div style="
-          position: absolute;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          color: rgba(255, 255, 255, 0.3);
-          font-size: 24px;
-          text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-        ">
-          CONFIDENTIAL
-        </div>
-      `;
-
-      return watermarkDiv;
-    };
-
-    // Setup audio watermark
-    const setupAudioWatermark = () => {
-      const audio = new Audio();
-      audio.src = 'data:audio/mp3;base64,...'; // Base64 encoded short audio watermark
-      audio.volume = 0.1; // Adjust volume (0.0 to 1.0)
-
-      // Play audio watermark every 30 seconds
-      const playAudioWatermark = () => {
-        if (audio.paused) {
-          audio.play().catch(err => console.log('Audio watermark playback failed:', err));
-        }
-      };
-
-      return setInterval(playAudioWatermark, 30000); // Every 30 seconds
-    };
+    const meetingSDKElement = document.getElementById("meetingSDKElement");
 
     client.init({
       zoomAppRoot: meetingSDKElement,
@@ -74,43 +116,28 @@ function Zoom() {
     client
       .join({
         sdkKey: "w7BZAw6_QSakJxBx9nd7DQ",
-        signature: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZGtLZXkiOiJ3N0JaQXc2X1FTQWtKeEJ4OW5kN0RRIiwiaWF0IjoxNzM1NTg0ODgxLCJleHAiOjE3MzU1OTIwODEsIm1uIjo4MjMzMjI1MTQ3Miwicm9sZSI6MH0.Ay9XRlYToYst8H_MIFnF3Ztt7CU-8cLrokYul7Iwlac",
-        meetingNumber: "82332251472",
+        signature: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZGtLZXkiOiJ3N0JaQXc2X1FTYWtKeEJ4OW5kN0RRIiwibW4iOiI4NjM2ODgzNzU2OCIsInJvbGUiOjAsImlhdCI6MTczNTY1MTQwMiwiZXhwIjoxNzM1NjU4NjAyfQ.dMAAhdUMER5n-0r2oJaUU7NXiYfTgtz9i79_csl30AM",
+        meetingNumber: "86368837568",
         password: "711145",
         userName: "Rezmx",
         userEmail: "rreza.rezaeiann@gmail.com",
         success: (success) => {
           console.log('Join Meeting Success', success);
-
-          // Add watermark after successful join
-          const watermark = createWatermark();
-          document.body.appendChild(watermark);
-
-          // Update watermark timestamp periodically
-          watermarkInterval.current = setInterval(() => {
-            document.body.removeChild(watermark);
-            const newWatermark = createWatermark();
-            document.body.appendChild(newWatermark);
-          }, 1000); // Update every second
-
-          // Setup audio watermark
-          audioRef.current = setupAudioWatermark();
-        }
+          setShowWatermark(true);
+          audioRef.current = setupTextToSpeech();
+        },
       })
       .catch((error) => {
         console.error(error);
       });
 
-    // Cleanup function
     return () => {
-      if (watermarkInterval.current) {
-        clearInterval(watermarkInterval.current);
-      }
       if (audioRef.current) {
         clearInterval(audioRef.current);
       }
-      const watermarkElements = document.querySelectorAll('[data-watermark]');
-      watermarkElements.forEach(element => element.remove());
+      if (speechSynthRef.current) {
+        window.speechSynthesis.cancel();
+      }
       client.leaveMeeting();
     };
   }, []);
@@ -118,8 +145,11 @@ function Zoom() {
   return (
     <div
       id="meetingSDKElement"
-      style={{ height: "100vh", width: "100vw" }}
-    ></div>
+      ref={zoomContainerRef}
+      className="h-screen w-screen relative"
+    >
+      {showWatermark && <Watermark />}
+    </div>
   );
 }
 
