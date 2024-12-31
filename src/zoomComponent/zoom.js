@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import ZoomMtgEmbedded from "@zoom/meetingsdk/embedded";
 
 function Zoom() {
@@ -7,10 +7,27 @@ function Zoom() {
 
     let meetingSDKElement = document.getElementById("meetingSDKElement");
 
+    // Initialize client with watermark settings
     client.init({
       zoomAppRoot: meetingSDKElement,
       language: "en-US",
+      // Add video watermark settings
+      videoWatermark: {
+        enable: true,
+        text: "Confidential Meeting", // Custom watermark text
+        fontSize: 24,
+        fontColor: "#ffffff",
+        opacity: 0.7,
+        position: 2, // Position: 1-top left, 2-top right, 3-bottom left, 4-bottom right
+        displayMode: 1 // 1-always show, 2-show on hover
+      },
+      // Add audio watermark settings
+      audioWatermark: {
+        enable: true,
+        audio: "watermark.mp3" // Path to your audio watermark file
+      }
     });
+
     client
       .join({
         sdkKey: "w7BZAw6_QSakJxBx9nd7DQ",
@@ -19,15 +36,16 @@ function Zoom() {
         meetingNumber: "82332251472",
         password: "711145",
         userName: "Rezmx",
-        userEmail: "rreza.rezaeiann@gmail.com",
+        userEmail: "rreza.rezaeiann@gmail.com"
       })
       .catch((error) => console.error(error));
   }, []);
+
   return (
-      <div
-        id="meetingSDKElement"
-        style={{ height: "100vh", width: "100vw" }}
-      ></div>
+    <div
+      id="meetingSDKElement"
+      style={{ height: "100vh", width: "100vw" }}
+    ></div>
   );
 }
 
