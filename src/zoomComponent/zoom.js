@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 
 import ZoomMtgEmbedded from "@zoom/meetingsdk/embedded";
@@ -15,7 +15,10 @@ const Watermark = () => {
   }, []);
 
   return (
-    <div id="persistent-watermark" className="fixed inset-0 w-screen h-screen pointer-events-none z-[9999] flex flex-col justify-between p-5 font-sans bg-black/20">
+    <div
+      id="persistent-watermark"
+      className="fixed inset-0 w-screen h-screen pointer-events-none z-[9999] flex flex-col justify-between p-5 font-sans bg-black/20"
+    >
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(5)].map((_, index) => (
           <div
@@ -23,7 +26,7 @@ const Watermark = () => {
             className={`absolute top-1/2 -translate-y-1/2 -rotate-45 text-white/30 text-4xl whitespace-nowrap select-none shadow-lg`}
             style={{
               left: `${index * 25}%`,
-              transform: 'translate(-50%, -50%) rotate(-45deg)',
+              transform: "translate(-50%, -50%) rotate(-45deg)",
             }}
           >
             CONFIDENTIAL
@@ -47,7 +50,7 @@ function Zoom() {
 
   const setupTextToSpeech = () => {
     if (!window.speechSynthesis) {
-      console.error('Speech synthesis not supported');
+      console.error("Speech synthesis not supported");
       return null;
     }
 
@@ -64,8 +67,7 @@ function Zoom() {
 
       speechSynthRef.current = utterance;
       window.speechSynthesis.speak(utterance);
-      console.log('paly audio');
-
+      console.log("paly audio");
     };
 
     return setInterval(speakWatermark, 1000);
@@ -80,10 +82,10 @@ function Zoom() {
       const watermark = document.getElementById("persistent-watermark");
       if (!watermark && showWatermark) {
         // If watermark is missing but should be shown, reinsert it
-        const zoomRoot = meetingSDKElement.querySelector('.zm-host');
+        const zoomRoot = meetingSDKElement.querySelector(".zm-host");
         if (zoomRoot) {
-          const watermarkContainer = document.createElement('div');
-          watermarkContainer.id = 'watermark-container';
+          const watermarkContainer = document.createElement("div");
+          watermarkContainer.id = "watermark-container";
           zoomRoot.appendChild(watermarkContainer);
 
           // Use ReactDOM to render the watermark
@@ -97,7 +99,7 @@ function Zoom() {
     if (meetingSDKElement) {
       observer.observe(meetingSDKElement, {
         childList: true,
-        subtree: true
+        subtree: true,
       });
     }
 
@@ -116,13 +118,14 @@ function Zoom() {
     client
       .join({
         sdkKey: "w7BZAw6_QSakJxBx9nd7DQ",
-        signature: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZGtLZXkiOiJ3N0JaQXc2X1FTYWtKeEJ4OW5kN0RRIiwibW4iOiI4NjM2ODgzNzU2OCIsInJvbGUiOjAsImlhdCI6MTczNTY1MTQwMiwiZXhwIjoxNzM1NjU4NjAyfQ.dMAAhdUMER5n-0r2oJaUU7NXiYfTgtz9i79_csl30AM",
-        meetingNumber: "86368837568",
-        password: "711145",
+        signature:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZGtLZXkiOiJ3N0JaQXc2X1FTYWtKeEJ4OW5kN0RRIiwiaWF0IjoxNzM1NjYwMzY5LCJleHAiOjE3MzU2Njc1NjksIm1uIjo4ODkzMTk1NDQwNiwicm9sZSI6MH0.4nnpLQJ4Cbcc97LSh16bre0pGW8ARGaOTIDkKJvufz8",
+        meetingNumber: "88931954406",
+        password: "n6858Q",
         userName: "Rezmx",
         userEmail: "rreza.rezaeiann@gmail.com",
         success: (success) => {
-          console.log('Join Meeting Success', success);
+          console.log("Join Meeting Success", success);
           setShowWatermark(true);
           audioRef.current = setupTextToSpeech();
         },
