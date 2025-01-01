@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
 const Footer = () => {
   const textToSpeak = "1234";
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const speakText = (text) => {
@@ -13,11 +15,16 @@ const Footer = () => {
     };
 
     const intervalId = setInterval(() => {
-      speakText(textToSpeak);
-      console.log(textToSpeak)
+      speakText(textToSpeak[currentIndex]);
+      console.log(textToSpeak[currentIndex]);
+
+      setCurrentIndex((prevIndex) =>
+        prevIndex + 1 < textToSpeak.length ? prevIndex + 1 : 0
+      );
     }, 10000);
+
     return () => clearInterval(intervalId);
-  }, [textToSpeak]);
+  }, [currentIndex, textToSpeak]);
 
   return (
     <footer
