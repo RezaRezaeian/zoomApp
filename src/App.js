@@ -6,9 +6,15 @@ import Watermark from "./waterMark/waterMark.js";
 function App() {
   return (
     <div className="App">
-      <Zoom></Zoom>
-      <Footer></Footer>
-      <Watermark text="واترمارک شما" />
+      <Zoom
+        sdkKey={process.env.REACT_APP_ZOOM_SDK_KEY}
+        meetingNumber="6849586348"
+        password="123456"
+        userName="Rezmx"
+        userEmail="rreza.rezaeiann@gmail.com"
+      />
+      {/* <Footer></Footer> */}
+      {/* <Watermark text="واترمارک شما" /> */}
     </div>
   );
 }
