@@ -25,18 +25,6 @@ const Footer = () => {
 
     return () => clearInterval(intervalId);
   }, [currentIndex, textToSpeak]);
-
-  return (
-    <footer
-      style={{
-        textAlign: "center",
-        padding: "20px",
-        backgroundColor: "#f8f9fa",
-      }}
-    >
-      <p>این یک فوتر نمونه است.</p>
-    </footer>
-  );
 };
 
 export default Footer;

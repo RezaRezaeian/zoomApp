@@ -8,7 +8,7 @@ function App() {
     <div className="App">
       <Zoom></Zoom>
       <Footer></Footer>
-      <Watermark text="واترمارک شما" />
+      <Watermark text={"123456789"} containerRef={containerRef}></Watermark>
     </div>
   );
 }
